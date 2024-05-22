@@ -1,35 +1,34 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect } from "react";
+import "./App.css";
+import { matrixMultiply } from "./matrixMultiply";
+import init, { matrix_multiply } from "./webassembly/webassembly";
 
 function App() {
-  const [count, setCount] = useState(0)
+  useEffect(() => {
+    const initWasm = async () => {
+      await init();
+      const n = 100; // 행렬 크기
+      const a = new Float64Array(n * n).fill(1.0); // 예제 행렬 데이터
+      const b = new Float64Array(n * n).fill(1.0); // 예제 행렬 데이터
+
+      console.time("wasm matrix multiply");
+      const wasmResult = matrix_multiply(a, b, n);
+      console.timeEnd("wasm matrix multiply");
+      console.log("WASM result", wasmResult.slice(0, 10)); // 결과의 일부만 출력
+
+      console.time("js matrix multiply");
+      const jsResult = matrixMultiply(a, b, n);
+      console.timeEnd("js matrix multiply");
+      console.log("JS result", jsResult.slice(0, 10)); // 결과의 일부만 출력
+    };
+    initWasm();
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <h1>WebAssembly vs JavaScript Matrix Multiplication</h1>
+    </div>
+  );
 }
 
-export default App
+export default App;
